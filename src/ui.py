@@ -57,13 +57,21 @@ _CSS = """
 footer, header { display: none !important; }
 
 /* kill all gradio wrapper chrome on the input */
-#cli, #cli *, #cli div, #cli .wrap, #cli .container {
+#cli {
+    position: relative;
+    padding-left: 1.5em !important;
+    background: transparent !important;
+    border: none !important;
+    box-shadow: none !important;
+    outline: none !important;
+    overflow: visible !important;
+}
+#cli label, #cli .input-container {
     background: transparent !important;
     border: none !important;
     box-shadow: none !important;
     outline: none !important;
 }
-#cli { position: relative; padding-left: 1.5em !important; }
 #cli .label-wrap { display: none !important; }
 #cli textarea, #cli input {
     font-family: 'JetBrains Mono','Fira Code','SF Mono','Consolas',monospace !important;
@@ -108,33 +116,46 @@ _HEAD = """
 (function init() {
     const cli = document.getElementById('cli');
     if (!cli) { setTimeout(init, 200); return; }
-    const input = cli.querySelector('textarea') || cli.querySelector('input');
-    if (!input) { setTimeout(init, 200); return; }
-    if (cli.querySelector('#cli-cursor')) return;
-    const cur = document.createElement('span');
-    cur.id = 'cli-cursor';
-    cur.textContent = '\u2588';
-    cli.appendChild(cur);
-    const measure = document.createElement('span');
-    measure.style.cssText = 'position:absolute;visibility:hidden;white-space:pre;' +
-        getComputedStyle(input).font;
-    cli.appendChild(measure);
-    const update = () => {
-        measure.textContent = input.value || '';
-        cur.style.left = (1.5 * 14 + measure.offsetWidth) + 'px';
-    };
-    input.addEventListener('input', update);
-    new MutationObserver(update).observe(input, {attributes: true, childList: true});
-    update();
+
+    function setup() {
+        const input = cli.querySelector('textarea') || cli.querySelector('input');
+        if (!input) return;
+
+        cli.style.overflow = 'visible';
+        input.style.position = 'relative';
+        input.style.zIndex = '50';
+
+        if (cli.querySelector('#cli-cursor')) return;
+
+        const cur = document.createElement('span');
+        cur.id = 'cli-cursor';
+        cur.textContent = '\u2588';
+        cli.appendChild(cur);
+        const measure = document.createElement('span');
+        measure.id = 'cli-measure';
+        measure.style.cssText = 'position:absolute;visibility:hidden;white-space:pre;' +
+            getComputedStyle(input).font;
+        cli.appendChild(measure);
+        const update = () => {
+            measure.textContent = input.value || '';
+            cur.style.left = (1.5 * 14 + measure.offsetWidth) + 'px';
+        };
+        input.addEventListener('input', update);
+        new MutationObserver(update).observe(input, {attributes: true, childList: true});
+        update();
+    }
+
+    setup();
+    new MutationObserver(setup).observe(cli, { childList: true, subtree: true });
 })();
 </script>
 """
 
-LAUNCH_KWARGS: dict = {
-    "theme": gr.themes.Monochrome(),  # type: ignore[attr-defined]
-    "css": _CSS,
-    "head": _HEAD,
-}
+LAUNCH_KWARGS = dict(
+    theme=gr.themes.Monochrome(),  # type: ignore[attr-defined]
+    css=_CSS,
+    head=_HEAD,
+)
 
 
 def create_app() -> gr.Blocks:
