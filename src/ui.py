@@ -82,21 +82,9 @@ footer, header { display: none !important; }
     box-shadow: none !important;
     outline: none !important;
     padding: 8px 0 !important;
-    caret-color: #b0b0b0;
+    caret-color: transparent;
 }
 @keyframes blink { 50% { opacity: 0; } }
-#cli::before {
-    content: '>';
-    position: absolute;
-    left: 0;
-    top: 50%;
-    transform: translateY(-50%);
-    color: #b0b0b0;
-    font-family: 'JetBrains Mono','Fira Code','SF Mono','Consolas',monospace;
-    font-size: 14px;
-    z-index: 1;
-    pointer-events: none;
-}
 #cli-cursor {
     position: absolute;
     left: 1.5em;
@@ -108,6 +96,18 @@ footer, header { display: none !important; }
     pointer-events: none;
     z-index: 1;
     animation: blink 1s step-end infinite;
+}
+#cli::before {
+    content: '>';
+    position: absolute;
+    left: 0;
+    top: 50%;
+    transform: translateY(-50%);
+    color: #b0b0b0;
+    font-family: 'JetBrains Mono','Fira Code','SF Mono','Consolas',monospace;
+    font-size: 14px;
+    z-index: 1;
+    pointer-events: none;
 }
 """
 
@@ -127,15 +127,22 @@ _HEAD = """
 
         if (cli.querySelector('#cli-cursor')) return;
 
+        const overlay = document.createElement('div');
+        overlay.style.cssText = 'position:absolute;inset:0;pointer-events:none;z-index:1;';
+
         const cur = document.createElement('span');
         cur.id = 'cli-cursor';
         cur.textContent = '\u2588';
-        cli.appendChild(cur);
+        overlay.appendChild(cur);
+
         const measure = document.createElement('span');
         measure.id = 'cli-measure';
-        measure.style.cssText = 'position:absolute;visibility:hidden;white-space:pre;' +
+        measure.style.cssText = 'position:absolute;visibility:hidden;white-space:pre;pointer-events:none;' +
             getComputedStyle(input).font;
-        cli.appendChild(measure);
+        overlay.appendChild(measure);
+
+        cli.appendChild(overlay);
+
         const update = () => {
             measure.textContent = input.value || '';
             cur.style.left = (1.5 * 14 + measure.offsetWidth) + 'px';
@@ -143,6 +150,7 @@ _HEAD = """
         input.addEventListener('input', update);
         new MutationObserver(update).observe(input, {attributes: true, childList: true});
         update();
+        input.focus();
     }
 
     setup();
@@ -165,6 +173,7 @@ def create_app() -> gr.Blocks:
             placeholder="owner/repo",
             elem_id="cli",
             container=False,
+            autofocus=True,
         )
         output = gr.HTML()
         url_input.submit(fn=analyze_repo, inputs=url_input, outputs=output)
