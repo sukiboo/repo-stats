@@ -144,10 +144,14 @@ _HEAD = """
         cli.appendChild(overlay);
 
         const update = () => {
-            measure.textContent = input.value || '';
+            const pos = input.selectionStart ?? input.value.length;
+            measure.textContent = input.value.substring(0, pos);
             cur.style.left = (1.5 * 14 + measure.offsetWidth) + 'px';
         };
         input.addEventListener('input', update);
+        input.addEventListener('keyup', update);
+        input.addEventListener('click', update);
+        input.addEventListener('select', update);
         new MutationObserver(update).observe(input, {attributes: true, childList: true});
         update();
         input.focus();
