@@ -154,6 +154,7 @@ _HEAD = """
         input.addEventListener('select', update);
         new MutationObserver(update).observe(input, {attributes: true, childList: true});
         update();
+        input.addEventListener('blur', () => setTimeout(() => input.focus(), 0));
         input.focus();
     }
 
