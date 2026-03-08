@@ -167,15 +167,14 @@ _HEAD = """
 </script>
 """
 
-LAUNCH_KWARGS = dict(
-    theme=gr.themes.Monochrome(),  # type: ignore[attr-defined]
-    css=_CSS,
-    head=_HEAD,
-)
-
 
 def create_app() -> gr.Blocks:
-    with gr.Blocks(title="repo-stats") as app:
+    with gr.Blocks(
+        title="repo-stats",
+        theme=gr.themes.Monochrome(),  # type: ignore[attr-defined]
+        css=_CSS,
+        head=_HEAD,
+    ) as app:
         url_input = gr.Textbox(
             show_label=False,
             placeholder="owner/repo",
