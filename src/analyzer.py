@@ -50,7 +50,7 @@ def count_lines_by_language(
             if lines > 0:
                 languages[lang] = languages.get(lang, 0) + lines
             completed += 1
-            if on_progress and completed % 10 == 0:
+            if on_progress:
                 on_progress(
                     ProgressInfo(desc="Counting lines...", completed=completed, total=total)
                 )

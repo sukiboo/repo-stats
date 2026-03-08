@@ -35,7 +35,7 @@ def analyze_repo(url: str) -> Generator[str, None, None]:
                 time.sleep(0.15)
             languages = future.result()
 
-        yield render_html(languages, url=url.strip())
+        yield render_html(languages, owner=owner, repo=repo)
     except ValueError as e:
         yield _error_html(str(e))
     except requests.ConnectionError:
@@ -49,7 +49,7 @@ def analyze_repo(url: str) -> Generator[str, None, None]:
 _CSS = """
 * { border-radius: 0 !important; }
 .gradio-container {
-    max-width: 960px !important;
+    max-width: 100% !important;
     background: #111 !important;
     font-family: 'JetBrains Mono','Fira Code','SF Mono','Consolas',monospace !important;
 }

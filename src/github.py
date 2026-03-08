@@ -11,10 +11,15 @@ def parse_repo_url(url: str) -> tuple[str, str]:
     url = url.strip().rstrip("/")
     if url.endswith(".git"):
         url = url[:-4]
-    match = re.match(r"^(?:https?://github\.com/)?([^/]+)/([^/]+)$", url)
-    if not match:
-        raise ValueError("Invalid repository URL. Use: owner/repo or https://github.com/owner/repo")
-    return match.group(1), match.group(2)
+    m = re.match(r"^git@github\.com:([^/]+)/([^/]+)$", url)
+    if m:
+        return m.group(1), m.group(2)
+    url = re.sub(r"^https?://", "", url)
+    url = re.sub(r"^github\.com/", "", url)
+    parts = url.split("/")
+    if len(parts) >= 2 and parts[0] and parts[1]:
+        return parts[0], parts[1]
+    raise ValueError("invalid repository url, use `owner/repo` or `https://github.com/owner/repo`")
 
 
 def _api_headers() -> dict[str, str]:
@@ -29,7 +34,7 @@ def get_default_branch(owner: str, repo: str) -> str:
         f"https://api.github.com/repos/{owner}/{repo}", headers=_api_headers(), timeout=15
     )
     if resp.status_code == 404:
-        raise ValueError(f"Repository not found: {owner}/{repo}")
+        raise ValueError(f"repository `https://api.github.com/repos/{owner}/{repo}` not found")
     if resp.status_code == 403:
         raise ValueError("Rate limit exceeded. Try again later or set a GITHUB_TOKEN.")
     resp.raise_for_status()
