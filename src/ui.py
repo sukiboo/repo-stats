@@ -6,6 +6,15 @@ import gradio as gr
 import requests
 
 from src.analyzer import count_lines_by_language
+from src.constants import (
+    BG_COLOR,
+    C_CYAN,
+    C_DIM,
+    C_TEXT,
+    FONT_FAMILY,
+    FONT_SIZE,
+    GITHUB_URL,
+)
 from src.github import parse_repo_url
 from src.models import ProgressInfo
 from src.rendering import _error_html, _progress_html, render_html
@@ -46,18 +55,20 @@ def analyze_repo(url: str) -> Generator[str, None, None]:
         yield _error_html(f"Unexpected error: {e}")
 
 
-_CSS = """
-* { border-radius: 0 !important; }
-.gradio-container {
+_CSS = f"""
+* {{ border-radius: 0 !important; }}
+.gradio-container {{
     max-width: 100% !important;
-    background: #111 !important;
-    font-family: 'JetBrains Mono','Fira Code','SF Mono','Consolas',monospace !important;
-}
-.main, .contain, .wrap { background: transparent !important; }
-footer, header { display: none !important; }
+    background: {BG_COLOR} !important;
+    font-family: {FONT_FAMILY} !important;
+}}
+.main, .contain, .wrap {{ background: transparent !important; }}
+footer, header {{ display: none !important; }}
+#app-title-wrap {{ padding: 0 !important; background: transparent !important; }}
+#app-title-wrap > div {{ background: transparent !important; }}
 
 /* kill all gradio wrapper chrome on the input */
-#cli {
+#cli {{
     position: relative;
     padding-left: 1.5em !important;
     background: transparent !important;
@@ -65,50 +76,50 @@ footer, header { display: none !important; }
     box-shadow: none !important;
     outline: none !important;
     overflow: visible !important;
-}
-#cli label, #cli .input-container {
+}}
+#cli label, #cli .input-container {{
     background: transparent !important;
     border: none !important;
     box-shadow: none !important;
     outline: none !important;
-}
-#cli .label-wrap { display: none !important; }
-#cli textarea, #cli input {
-    font-family: 'JetBrains Mono','Fira Code','SF Mono','Consolas',monospace !important;
-    font-size: 14px !important;
+}}
+#cli .label-wrap {{ display: none !important; }}
+#cli textarea, #cli input {{
+    font-family: {FONT_FAMILY} !important;
+    font-size: {FONT_SIZE} !important;
     background: transparent !important;
-    color: #b0b0b0 !important;
+    color: {C_TEXT} !important;
     border: none !important;
     box-shadow: none !important;
     outline: none !important;
     padding: 8px 0 !important;
     caret-color: transparent;
-}
-@keyframes blink { 50% { opacity: 0; } }
-#cli-cursor {
+}}
+@keyframes blink {{ 50% {{ opacity: 0; }} }}
+#cli-cursor {{
     position: absolute;
     left: 1.5em;
     top: 50%;
     transform: translateY(-50%);
-    color: #b0b0b0;
-    font-family: 'JetBrains Mono','Fira Code','SF Mono','Consolas',monospace;
-    font-size: 14px;
+    color: {C_TEXT};
+    font-family: {FONT_FAMILY};
+    font-size: {FONT_SIZE};
     pointer-events: none;
     z-index: 1;
     animation: blink 1s step-end infinite;
-}
-#cli::before {
+}}
+#cli::before {{
     content: '>';
     position: absolute;
     left: 0;
     top: 50%;
     transform: translateY(-50%);
-    color: #b0b0b0;
-    font-family: 'JetBrains Mono','Fira Code','SF Mono','Consolas',monospace;
-    font-size: 14px;
+    color: {C_TEXT};
+    font-family: {FONT_FAMILY};
+    font-size: {FONT_SIZE};
     z-index: 1;
     pointer-events: none;
-}
+}}
 """
 
 _HEAD = """
@@ -168,13 +179,24 @@ _HEAD = """
 """
 
 
+_TITLE_HTML = (
+    f'<div id="app-title" style="'
+    f"font-family:{FONT_FAMILY};"
+    f"font-size:{FONT_SIZE};color:{C_DIM};padding:12px 0 4px 0;"
+    f'">'
+    f'<a href="{GITHUB_URL}" target="_blank" '
+    f'style="color:{C_CYAN};text-decoration:none;font-weight:bold">repo-stats</a>'
+    f' <span style="color:{C_DIM}">--</span> '
+    f'<span style="color:{C_TEXT}">lines of code by language</span>'
+    f"</div>"
+)
+
+
 def create_app() -> gr.Blocks:
     with gr.Blocks(
         title="repo-stats",
-        theme=gr.themes.Monochrome(),  # type: ignore[attr-defined]
-        css=_CSS,
-        head=_HEAD,
     ) as app:
+        gr.HTML(_TITLE_HTML, elem_id="app-title-wrap")
         url_input = gr.Textbox(
             show_label=False,
             placeholder="owner/repo",
@@ -186,3 +208,11 @@ def create_app() -> gr.Blocks:
         url_input.submit(fn=analyze_repo, inputs=url_input, outputs=output)
 
     return app
+
+
+def launch_app(app: gr.Blocks) -> None:
+    app.launch(
+        theme=gr.themes.Monochrome(),  # type: ignore[attr-defined]
+        css=_CSS,
+        head=_HEAD,
+    )

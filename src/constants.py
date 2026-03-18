@@ -177,8 +177,25 @@ SKIP_DIRS: set[str] = {
 }
 
 
+GITHUB_URL: str = "https://github.com/sukiboo/repo-stats"
 GITHUB_TOKEN: str = os.environ.get("GITHUB_TOKEN", "")
 CACHE: dict[str, CacheEntry] = {}
 CACHE_TTL: int = 300
 MAX_FILES: int = 5000
 MAX_WORKERS: int = 20
+
+FONT_FAMILY: str = "'JetBrains Mono','Fira Code','SF Mono','Consolas',monospace"
+FONT_SIZE: str = "14px"
+
+BG_COLOR: str = "#300a24"
+C_DIM: str = "#555555"
+C_TEXT: str = "#b0b0b0"
+C_BRIGHT: str = "#e0e0e0"
+C_GREEN: str = "#4e9a06"
+C_CYAN: str = "#06989a"
+C_YELLOW: str = "#c4a000"
+C_RED: str = "#cc0000"
+
+PROGRESS_WIDTH: int = 50
+LANG_WIDTH: int = 20
+BAR_WIDTH: int = 50

@@ -1,6 +1,6 @@
-from src.ui import create_app
+from src.ui import create_app, launch_app
 
 app = create_app()
 
 if __name__ == "__main__":
-    app.launch()
+    launch_app(app)
