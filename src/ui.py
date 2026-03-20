@@ -138,6 +138,8 @@ _HEAD = """
 
         if (cli.querySelector('#cli-cursor')) return;
 
+        input.setAttribute('spellcheck', 'false');
+
         const overlay = document.createElement('div');
         overlay.style.cssText = 'position:absolute;inset:0;pointer-events:none;z-index:1;';
 
