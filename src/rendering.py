@@ -2,13 +2,13 @@ from html import escape
 
 from src.constants import (
     BAR_WIDTH,
-    C_BRIGHT,
-    C_CYAN,
-    C_DIM,
-    C_GREEN,
-    C_RED,
+    C_ACCENT,
+    C_BAR,
+    C_ERROR,
+    C_LABEL,
+    C_LINK,
+    C_MUTED,
     C_TEXT,
-    C_YELLOW,
     FONT_FAMILY,
     FONT_SIZE,
     LANG_WIDTH,
@@ -50,28 +50,28 @@ def render_html(languages: dict[str, int], owner: str = "", repo: str = "") -> s
     repo_url = f"https://github.com/{escape(owner)}/{escape(repo)}"
     lines: list[str] = []
 
-    repo_link = f'<a href="{repo_url}" target="_blank" style="color:{C_CYAN};text-decoration:none">{repo_url}</a>'
+    repo_link = f'<a href="{repo_url}" target="_blank" style="color:{C_LINK};text-decoration:none">{repo_url}</a>'
     lines.append(
-        f'Repository: {repo_link}  {_c("//", C_DIM)}  {_c(f"{total:,} lines of code", C_TEXT)}'
+        f'Repository: {repo_link}  {_c("//", C_MUTED)}  {_c(f"{total:,} lines of code", C_TEXT)}'
     )
     lines.append("")
 
-    hdr_lang = _pad(_c("language", C_DIM), len("language"), LANG_WIDTH)
+    hdr_lang = _pad(_c("language", C_MUTED), len("language"), LANG_WIDTH)
     hdr_bar = " " * BAR_WIDTH
-    hdr_pct = _c(f"{'%':>7s}", C_DIM)
-    hdr_lines = _c(f"{'lines':>10s}", C_DIM)
+    hdr_pct = _c(f"{'%':>7s}", C_MUTED)
+    hdr_lines = _c(f"{'lines':>10s}", C_MUTED)
     lines.append(f"{hdr_lang} {hdr_bar}  {hdr_pct}  {hdr_lines}")
-    sep = _c("\u2500" * (LANG_WIDTH + 1 + BAR_WIDTH + 2 + 7 + 2 + 10), C_DIM)
+    sep = _c("\u2500" * (LANG_WIDTH + 1 + BAR_WIDTH + 2 + 7 + 2 + 10), C_MUTED)
     lines.append(sep)
     lines.append("")
 
     for lang, loc in sorted_langs:
         pct = loc / total
         filled = round(pct * BAR_WIDTH)
-        bar = _c("#" * filled, C_GREEN) + _c("." * (BAR_WIDTH - filled), C_DIM)
+        bar = _c("#" * filled, C_BAR) + _c("." * (BAR_WIDTH - filled), C_MUTED)
 
-        lang_col = _pad(_c(escape(lang), C_BRIGHT), len(lang), LANG_WIDTH)
-        pct_str = _c(f"{pct:>7.2%}", C_YELLOW)
+        lang_col = _pad(_c(escape(lang), C_LABEL), len(lang), LANG_WIDTH)
+        pct_str = _c(f"{pct:>7.2%}", C_ACCENT)
         loc_str = _c(f"{loc:>10,}", C_TEXT)
 
         lines.append(f"{lang_col} {bar}  {pct_str}  {loc_str}")
@@ -81,7 +81,7 @@ def render_html(languages: dict[str, int], owner: str = "", repo: str = "") -> s
 
 def _error_html(message: str) -> str:
     lines = [
-        f"{_c('error:', C_RED, bold=True)} {_c(escape(message), C_TEXT)}",
+        f"{_c('error:', C_ERROR, bold=True)} {_c(escape(message), C_TEXT)}",
     ]
     return _pre("\n".join(lines))
 
@@ -92,11 +92,11 @@ def _progress_html(progress: ProgressInfo) -> str:
     else:
         pct = progress.completed / progress.total
     filled = round(pct * PROGRESS_WIDTH)
-    bar = _c("#" * filled, C_GREEN) + _c("." * (PROGRESS_WIDTH - filled), C_DIM)
+    bar = _c("#" * filled, C_BAR) + _c("." * (PROGRESS_WIDTH - filled), C_MUTED)
 
-    desc = _c(progress.desc, C_DIM, italic=True)
+    desc = _c(progress.desc, C_MUTED, italic=True)
     counter = _c(f"{progress.completed}/{progress.total} files", C_TEXT)
-    pct_str = _c(f"{pct:.2%}", C_YELLOW)
+    pct_str = _c(f"{pct:.2%}", C_ACCENT)
 
     text = f"{desc}\n[{bar}] {pct_str}  {counter}"
     return _pre(text)

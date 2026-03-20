@@ -184,18 +184,39 @@ CACHE_TTL: int = 300
 MAX_FILES: int = 5000
 MAX_WORKERS: int = 20
 
-FONT_FAMILY: str = "'JetBrains Mono','Fira Code','SF Mono','Consolas',monospace"
+FONT_FAMILY: str = "monospace"
 FONT_SIZE: str = "14px"
 
+
+# my terminal colors
+_ = {
+    0: "#333333",
+    1: "#ff4488",
+    2: "#44ff88",
+    3: "#ff8844",
+    4: "#44ffff",
+    5: "#8844ff",
+    6: "#00dddd",
+    7: "#cccccc",
+    8: "#555555",
+    9: "#ee66aa",
+    10: "#00aa88",
+    11: "#eeaa66",
+    12: "#66aaee",
+    13: "#aa66ee",
+    14: "#44ffff",
+    15: "#eeeeee",
+}
+
 BG_COLOR: str = "#300a24"
-C_DIM: str = "#555555"
-C_TEXT: str = "#b0b0b0"
-C_BRIGHT: str = "#e0e0e0"
-C_GREEN: str = "#4e9a06"
-C_CYAN: str = "#06989a"
-C_YELLOW: str = "#c4a000"
-C_RED: str = "#cc0000"
+C_MUTED: str = "#555555"
+C_TEXT: str = "#cccccc"
+C_LABEL: str = "#eeeeee"
+C_BAR: str = "#eeaa66"
+C_LINK: str = "#00aa88"
+C_ACCENT: str = "#eeaa66"
+C_ERROR: str = "#ff4488"
 
 PROGRESS_WIDTH: int = 50
 LANG_WIDTH: int = 20
-BAR_WIDTH: int = 50
+BAR_WIDTH: int = 30

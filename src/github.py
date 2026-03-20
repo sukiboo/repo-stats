@@ -34,7 +34,7 @@ def get_default_branch(owner: str, repo: str) -> str:
         f"https://api.github.com/repos/{owner}/{repo}", headers=_api_headers(), timeout=15
     )
     if resp.status_code == 404:
-        raise ValueError(f"repository `https://api.github.com/repos/{owner}/{repo}` not found")
+        raise ValueError(f"repository `https://github.com/{owner}/{repo}` not found")
     if resp.status_code == 403:
         raise ValueError("Rate limit exceeded. Try again later or set a GITHUB_TOKEN.")
     resp.raise_for_status()

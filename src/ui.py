@@ -8,8 +8,8 @@ import requests
 from src.analyzer import count_lines_by_language
 from src.constants import (
     BG_COLOR,
-    C_CYAN,
-    C_DIM,
+    C_LINK,
+    C_MUTED,
     C_TEXT,
     FONT_FAMILY,
     FONT_SIZE,
@@ -182,11 +182,11 @@ _HEAD = """
 _TITLE_HTML = (
     f'<div id="app-title" style="'
     f"font-family:{FONT_FAMILY};"
-    f"font-size:{FONT_SIZE};color:{C_DIM};padding:12px 0 4px 0;"
+    f"font-size:{FONT_SIZE};color:{C_MUTED};padding:12px 0 4px 0;"
     f'">'
     f'<a href="{GITHUB_URL}" target="_blank" '
-    f'style="color:{C_CYAN};text-decoration:none;font-weight:bold">repo-stats</a>'
-    f' <span style="color:{C_DIM}">--</span> '
+    f'style="color:{C_LINK};text-decoration:none;font-weight:bold">repo-stats</a>'
+    f' <span style="color:{C_MUTED}">--</span> '
     f'<span style="color:{C_TEXT}">lines of code by language</span>'
     f"</div>"
 )
