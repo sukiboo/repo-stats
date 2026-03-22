@@ -181,7 +181,6 @@ GITHUB_URL: str = "https://github.com/sukiboo/repo-stats"
 GITHUB_TOKEN: str = os.environ.get("GITHUB_TOKEN", "")
 CACHE: dict[str, CacheEntry] = {}
 CACHE_TTL: int = 300
-MAX_FILES: int = 5000
 MAX_WORKERS: int = 20
 
 FONT_FAMILY: str = "monospace"

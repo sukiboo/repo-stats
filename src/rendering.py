@@ -44,8 +44,13 @@ def render_html(languages: dict[str, int], owner: str = "", repo: str = "") -> s
     if not languages:
         return _error_html("No code files found in this repository.")
 
-    sorted_langs = sorted(languages.items(), key=lambda x: -x[1])
     total = sum(languages.values())
+    threshold = 0.005
+    main = {k: v for k, v in languages.items() if v / total >= threshold}
+    other = total - sum(main.values())
+    if other > 0:
+        main["Other"] = other
+    sorted_langs = sorted(main.items(), key=lambda x: -x[1])
 
     repo_url = f"https://github.com/{escape(owner)}/{escape(repo)}"
     lines: list[str] = []
@@ -96,7 +101,7 @@ def _progress_html(progress: ProgressInfo) -> str:
 
     desc = _c(progress.desc, C_MUTED, italic=True)
     counter = _c(f"{progress.completed}/{progress.total} files", C_TEXT)
-    pct_str = _c(f"{pct:.2%}", C_ACCENT)
+    pct_str = _c(f"{pct:.0%}", C_ACCENT)
 
     text = f"{desc}\n[{bar}] {pct_str}  {counter}"
     return _pre(text)

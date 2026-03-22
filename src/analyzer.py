@@ -2,7 +2,7 @@ import time
 from collections.abc import Callable
 from concurrent.futures import Future, ThreadPoolExecutor, as_completed
 
-from src.constants import CACHE, CACHE_TTL, EXTENSION_MAP, MAX_FILES, MAX_WORKERS
+from src.constants import CACHE, CACHE_TTL, EXTENSION_MAP, MAX_WORKERS
 from src.github import fetch_file_lines, get_default_branch, get_file_tree
 from src.models import CacheEntry, ProgressInfo
 from src.utils import _get_ext, _should_count
@@ -29,9 +29,6 @@ def count_lines_by_language(
 
     if not paths:
         raise ValueError("No code files found in this repository.")
-
-    if len(paths) > MAX_FILES:
-        paths = paths[:MAX_FILES]
 
     languages: dict[str, int] = {}
     completed = 0
