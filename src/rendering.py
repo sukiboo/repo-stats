@@ -65,12 +65,16 @@ def render_html(
 
     if total_files:
         pbar = _c("#" * PROGRESS_WIDTH, C_BAR)
-        counter = _c(f"{total_files}/{total_files} files", C_TEXT)
+        counter = _c(f"{total_files} files", C_TEXT)
         pct_str = _c("100%", C_ACCENT)
-        lines.append(f"[{pbar}] {pct_str} {_c('//', C_MUTED)} {counter}")
+        lines.append(f" {pct_str} [{pbar}] {_c('//', C_MUTED)} {counter}")
 
     repo_link = f'<a href="{repo_url}" target="_blank" style="color:{C_LINK};text-decoration:none">{repo_url}</a>'
-    lines += ["", f'{repo_link} {_c("//", C_MUTED)} {_c(f"{total:,} lines of code", C_TEXT)}', ""]
+    lines += [
+        "\n",
+        f' {repo_link} {_c("//", C_MUTED)} {_c(f"{total:,} lines of code", C_TEXT)}',
+        "",
+    ]
 
     row_width = lw + len(g1) + BAR_WIDTH + len(g2) + 7 + len(g3) + nw
     hdr = (
@@ -82,7 +86,7 @@ def render_html(
         + g3
         + _c(f"{'lines':>{nw}s}", C_MUTED)
     )
-    lines += [hdr, _c("\u2500" * row_width, C_MUTED)]
+    lines += [" " + hdr, " " + _c("\u2500" * row_width, C_MUTED)]
 
     for lang, loc in sorted_langs:
         pct = loc / total
@@ -93,7 +97,7 @@ def render_html(
         pct_str = _c(f"{pct:>7.2%}", C_ACCENT)
         loc_str = _c(f"{loc:>{nw},}", C_TEXT)
 
-        lines.append(f"{lang_col}{g1}{bar}{g2}{pct_str}{g3}{loc_str}")
+        lines.append(f" {lang_col}{g1}{bar}{g2}{pct_str}{g3}{loc_str}")
 
     return _pre("\n".join(lines))
 
@@ -113,9 +117,7 @@ def _progress_html(progress: ProgressInfo) -> str:
     filled = round(pct * PROGRESS_WIDTH)
     bar = _c("#" * filled, C_BAR) + _c("." * (PROGRESS_WIDTH - filled), C_MUTED)
 
-    desc = _c(progress.desc, C_MUTED, italic=True)
     counter = _c(f"{progress.completed}/{progress.total} files", C_TEXT)
     pct_str = _c(f"{pct:.0%}", C_ACCENT)
 
-    text = f"{desc}\n[{bar}] {pct_str} {_c('//', C_MUTED)} {counter}"
-    return _pre(text)
+    return _pre(f" {pct_str} [{bar}] {_c('//', C_MUTED)} {counter}")

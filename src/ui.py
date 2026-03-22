@@ -7,6 +7,8 @@ import requests
 
 from src.analyzer import count_lines_by_language
 from src.constants import (
+    APP_SUBTITLE,
+    APP_TITLE,
     BG_COLOR,
     C_LINK,
     C_MUTED,
@@ -191,16 +193,17 @@ _TITLE_HTML = (
     f"font-size:{FONT_SIZE};color:{C_MUTED};padding:12px 0 4px 0;"
     f'">'
     f'<a href="{GITHUB_URL}" target="_blank" '
-    f'style="color:{C_LINK};text-decoration:none;font-weight:bold">repo-stats</a>'
-    f' <span style="color:{C_MUTED}">--</span> '
-    f'<span style="color:{C_TEXT}">lines of code by language</span>'
+    f'style="color:{C_LINK};text-decoration:none;font-weight:bold">{APP_TITLE}</a>'
+    f"</br>"
+    f'<span style="color:{C_TEXT};font-style:italic;margin-left:1ch">{APP_SUBTITLE}</span>'
+    f"</br></br>"
     f"</div>"
 )
 
 
 def create_app() -> gr.Blocks:
     with gr.Blocks(
-        title="repo-stats",
+        title=APP_TITLE,
     ) as app:
         gr.HTML(_TITLE_HTML, elem_id="app-title-wrap")
         url_input = gr.Textbox(

@@ -177,6 +177,8 @@ SKIP_DIRS: set[str] = {
 }
 
 
+APP_TITLE: str = "# repo-stats"
+APP_SUBTITLE: str = "## show lines of code by language in a repo"
 GITHUB_URL: str = "https://github.com/sukiboo/repo-stats"
 GITHUB_TOKEN: str = os.environ.get("GITHUB_TOKEN", "")
 CACHE: dict[str, CacheEntry] = {}
@@ -211,10 +213,10 @@ BG_COLOR: str = "#300a24"
 C_MUTED: str = "#555555"
 C_TEXT: str = "#cccccc"
 C_LABEL: str = "#eeeeee"
-C_BAR: str = "#eeaa66"
+C_BAR: str = "#555555"
 C_LINK: str = "#00aa88"
 C_ACCENT: str = "#eeaa66"
 C_ERROR: str = "#ff4488"
 
 PROGRESS_WIDTH: int = 50
-BAR_WIDTH: int = 30
+BAR_WIDTH: int = 40

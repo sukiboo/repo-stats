@@ -19,12 +19,7 @@ def count_lines_by_language(
         entry = CACHE[cache_key]
         return entry.data, entry.files
 
-    if on_progress:
-        on_progress(ProgressInfo(desc="Fetching repository info...", completed=0, total=0))
     branch = get_default_branch(owner, repo)
-
-    if on_progress:
-        on_progress(ProgressInfo(desc="Fetching file tree...", completed=0, total=0))
     all_paths = get_file_tree(owner, repo, branch)
     paths = [p for p in all_paths if _should_count(p)]
 
@@ -49,9 +44,7 @@ def count_lines_by_language(
                 languages[lang] = languages.get(lang, 0) + lines
             completed += 1
             if on_progress:
-                on_progress(
-                    ProgressInfo(desc="Counting lines...", completed=completed, total=total)
-                )
+                on_progress(ProgressInfo(completed=completed, total=total))
 
     CACHE[cache_key] = CacheEntry(data=languages, files=total, time=time.time())
     return languages, total
