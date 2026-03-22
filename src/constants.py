@@ -217,5 +217,4 @@ C_ACCENT: str = "#eeaa66"
 C_ERROR: str = "#ff4488"
 
 PROGRESS_WIDTH: int = 50
-LANG_WIDTH: int = 20
 BAR_WIDTH: int = 30

@@ -32,7 +32,7 @@ def analyze_repo(url: str) -> Generator[str, None, None]:
 
         _on_progress.pending = None  # type: ignore[attr-defined]
 
-        def _run() -> dict[str, int]:
+        def _run() -> tuple[dict[str, int], int]:
             return count_lines_by_language(owner, repo, on_progress=_on_progress)
 
         with ThreadPoolExecutor(max_workers=1) as executor:
@@ -42,9 +42,9 @@ def analyze_repo(url: str) -> Generator[str, None, None]:
                     yield _on_progress.pending  # type: ignore[attr-defined]
                     _on_progress.pending = None  # type: ignore[attr-defined]
                 time.sleep(0.15)
-            languages = future.result()
+            languages, total_files = future.result()
 
-        yield render_html(languages, owner=owner, repo=repo)
+        yield render_html(languages, owner=owner, repo=repo, total_files=total_files)
     except ValueError as e:
         yield _error_html(str(e))
     except requests.ConnectionError:
@@ -59,10 +59,13 @@ _CSS = f"""
 * {{ border-radius: 0 !important; }}
 .gradio-container {{
     max-width: 100% !important;
+    padding: 8px 0 !important;
     background: {BG_COLOR} !important;
     font-family: {FONT_FAMILY} !important;
 }}
-.main, .contain, .wrap {{ background: transparent !important; }}
+.main, .contain, .wrap, .block {{ background: transparent !important; padding: 0 !important; max-width: 100% !important; border: none !important; }}
+.gradio-container [class*="html-container"] {{ padding: 0 !important; }}
+.column {{ gap: 4px !important; padding: 0 16px 0 2ch !important; }}
 footer, header {{ display: none !important; }}
 #app-title-wrap {{ padding: 0 !important; background: transparent !important; }}
 #app-title-wrap > div {{ background: transparent !important; }}
@@ -70,7 +73,7 @@ footer, header {{ display: none !important; }}
 /* kill all gradio wrapper chrome on the input */
 #cli {{
     position: relative;
-    padding-left: 1.5em !important;
+    padding-left: 20ch !important;
     background: transparent !important;
     border: none !important;
     box-shadow: none !important;
@@ -98,7 +101,7 @@ footer, header {{ display: none !important; }}
 @keyframes blink {{ 50% {{ opacity: 0; }} }}
 #cli-cursor {{
     position: absolute;
-    left: 1.5em;
+    left: 20ch;
     top: 50%;
     transform: translateY(-50%);
     color: {C_TEXT};
@@ -109,7 +112,7 @@ footer, header {{ display: none !important; }}
     animation: blink 1s step-end infinite;
 }}
 #cli::before {{
-    content: '>';
+    content: '\\00a0github repository:';
     position: absolute;
     left: 0;
     top: 50%;
@@ -159,7 +162,8 @@ _HEAD = """
         const update = () => {
             const pos = input.selectionStart ?? input.value.length;
             measure.textContent = input.value.substring(0, pos);
-            cur.style.left = (1.5 * 14 + measure.offsetWidth) + 'px';
+            const ch = parseFloat(getComputedStyle(input).fontSize) * 0.6;
+            cur.style.left = (20 * ch + measure.offsetWidth) + 'px';
         };
         input.addEventListener('input', update);
         input.addEventListener('keyup', update);

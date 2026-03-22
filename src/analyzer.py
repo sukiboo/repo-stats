@@ -12,11 +12,12 @@ def count_lines_by_language(
     owner: str,
     repo: str,
     on_progress: Callable[[ProgressInfo], None] | None = None,
-) -> dict[str, int]:
+) -> tuple[dict[str, int], int]:
     cache_key = f"{owner}/{repo}"
     now = time.time()
     if cache_key in CACHE and now - CACHE[cache_key].time < CACHE_TTL:
-        return CACHE[cache_key].data
+        entry = CACHE[cache_key]
+        return entry.data, entry.files
 
     if on_progress:
         on_progress(ProgressInfo(desc="Fetching repository info...", completed=0, total=0))
@@ -52,5 +53,5 @@ def count_lines_by_language(
                     ProgressInfo(desc="Counting lines...", completed=completed, total=total)
                 )
 
-    CACHE[cache_key] = CacheEntry(data=languages, time=time.time())
-    return languages
+    CACHE[cache_key] = CacheEntry(data=languages, files=total, time=time.time())
+    return languages, total
