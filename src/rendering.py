@@ -11,9 +11,9 @@ from src.constants import (
     C_TEXT,
     FONT_FAMILY,
     FONT_SIZE,
+    MIN_LANGUAGE_SHARE,
     PROGRESS_WIDTH,
 )
-from src.models import ProgressInfo
 
 PRE_STYLE: str = (
     f"font-family:{FONT_FAMILY};"
@@ -40,15 +40,31 @@ def _pad(text: str, visual_len: int, width: int) -> str:
 
 
 def render_html(
-    languages: dict[str, int], owner: str = "", repo: str = "", total_files: int = 0
+    languages: dict[str, int],
+    owner: str = "",
+    repo: str = "",
+    completed: int = 0,
+    total: int = 0,
 ) -> str:
-    if not languages:
+    lines: list[str] = []
+
+    if total:
+        done = completed >= total
+        pct = 1.0 if done else completed / total
+        filled = PROGRESS_WIDTH if done else round(pct * PROGRESS_WIDTH)
+        pbar = _c("#" * filled, C_BAR) + _c("." * (PROGRESS_WIDTH - filled), C_MUTED)
+        counter = _c(f"{total} files" if done else f"{completed}/{total} files", C_TEXT)
+        pct_str = _c("100%" if done else f"{pct:.0%}", C_ACCENT)
+        lines.append(f" {pct_str} [{pbar}] {_c('//', C_MUTED)} {counter}")
+
+    total_loc = sum(languages.values())
+    if not languages or total_loc == 0:
+        if lines:
+            return _pre("\n".join(lines))
         return _error_html("No code files found in this repository.")
 
-    total = sum(languages.values())
-    threshold = 0.005
-    main = {k: v for k, v in languages.items() if v / total >= threshold}
-    other = total - sum(main.values())
+    main = {k: v for k, v in languages.items() if v / total_loc >= MIN_LANGUAGE_SHARE}
+    other = total_loc - sum(main.values())
     if other > 0:
         main["Other"] = other
     sorted_langs = sorted(
@@ -61,18 +77,10 @@ def render_html(
     g1, g2, g3 = "    ", "  ", "    "
 
     repo_url = f"https://github.com/{escape(owner)}/{escape(repo)}"
-    lines: list[str] = []
-
-    if total_files:
-        pbar = _c("#" * PROGRESS_WIDTH, C_BAR)
-        counter = _c(f"{total_files} files", C_TEXT)
-        pct_str = _c("100%", C_ACCENT)
-        lines.append(f" {pct_str} [{pbar}] {_c('//', C_MUTED)} {counter}")
-
     repo_link = f'<a href="{repo_url}" target="_blank" style="color:{C_LINK};text-decoration:none">{repo_url}</a>'
     lines += [
         "\n",
-        f' {repo_link} {_c("//", C_MUTED)} {_c(f"{total:,} lines of code", C_TEXT)}',
+        f' {repo_link} {_c("//", C_MUTED)} {_c(f"{total_loc:,} lines of code", C_TEXT)}',
         "",
     ]
 
@@ -89,7 +97,7 @@ def render_html(
     lines += [" " + hdr, " " + _c("\u2500" * row_width, C_MUTED)]
 
     for lang, loc in sorted_langs:
-        pct = loc / total
+        pct = loc / total_loc
         filled = round(pct * BAR_WIDTH)
         bar = _c("#" * filled, C_BAR) + _c("." * (BAR_WIDTH - filled), C_MUTED)
 
@@ -107,17 +115,3 @@ def _error_html(message: str) -> str:
         f"{_c('error:', C_ERROR, bold=True)} {_c(escape(message), C_TEXT)}",
     ]
     return _pre("\n".join(lines))
-
-
-def _progress_html(progress: ProgressInfo) -> str:
-    if progress.total == 0:
-        pct = 0.0
-    else:
-        pct = progress.completed / progress.total
-    filled = round(pct * PROGRESS_WIDTH)
-    bar = _c("#" * filled, C_BAR) + _c("." * (PROGRESS_WIDTH - filled), C_MUTED)
-
-    counter = _c(f"{progress.completed}/{progress.total} files", C_TEXT)
-    pct_str = _c(f"{pct:.0%}", C_ACCENT)
-
-    return _pre(f" {pct_str} [{bar}] {_c('//', C_MUTED)} {counter}")

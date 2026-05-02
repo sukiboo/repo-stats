@@ -2,7 +2,13 @@ import time
 from collections.abc import Callable
 from concurrent.futures import Future, ThreadPoolExecutor, as_completed
 
-from src.constants import CACHE, CACHE_TTL, EXTENSION_MAP, MAX_WORKERS
+from src.constants import (
+    CACHE,
+    CACHE_TTL,
+    EXTENSION_MAP,
+    MAX_WORKERS,
+    PROGRESS_THROTTLE,
+)
 from src.github import fetch_file_lines, get_default_branch, get_file_tree
 from src.models import CacheEntry, ProgressInfo
 from src.utils import _get_ext, _should_count
@@ -29,6 +35,7 @@ def count_lines_by_language(
     languages: dict[str, int] = {}
     completed = 0
     total = len(paths)
+    last_progress = 0.0
 
     def _fetch(path: str) -> tuple[str, int]:
         lines = fetch_file_lines(owner, repo, branch, path)
@@ -44,7 +51,12 @@ def count_lines_by_language(
                 languages[lang] = languages.get(lang, 0) + lines
             completed += 1
             if on_progress:
-                on_progress(ProgressInfo(completed=completed, total=total))
+                now = time.monotonic()
+                if now - last_progress >= PROGRESS_THROTTLE or completed == total:
+                    on_progress(
+                        ProgressInfo(completed=completed, total=total, languages=dict(languages))
+                    )
+                    last_progress = now
 
     CACHE[cache_key] = CacheEntry(data=languages, files=total, time=time.time())
     return languages, total

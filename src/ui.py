@@ -16,10 +16,11 @@ from src.constants import (
     FONT_FAMILY,
     FONT_SIZE,
     GITHUB_URL,
+    PROGRESS_POLL_INTERVAL,
 )
 from src.github import parse_repo_url
 from src.models import ProgressInfo
-from src.rendering import _error_html, _progress_html, render_html
+from src.rendering import _error_html, render_html
 
 
 def analyze_repo(url: str) -> Generator[str, None, None]:
@@ -30,7 +31,7 @@ def analyze_repo(url: str) -> Generator[str, None, None]:
         owner, repo = parse_repo_url(url)
 
         def _on_progress(progress: ProgressInfo) -> None:
-            _on_progress.pending = _progress_html(progress)  # type: ignore[attr-defined]
+            _on_progress.pending = progress  # type: ignore[attr-defined]
 
         _on_progress.pending = None  # type: ignore[attr-defined]
 
@@ -40,13 +41,22 @@ def analyze_repo(url: str) -> Generator[str, None, None]:
         with ThreadPoolExecutor(max_workers=1) as executor:
             future = executor.submit(_run)
             while not future.done():
-                if _on_progress.pending:  # type: ignore[attr-defined]
-                    yield _on_progress.pending  # type: ignore[attr-defined]
+                progress = _on_progress.pending  # type: ignore[attr-defined]
+                if progress is not None:
                     _on_progress.pending = None  # type: ignore[attr-defined]
-                time.sleep(0.15)
+                    yield render_html(
+                        progress.languages,
+                        owner=owner,
+                        repo=repo,
+                        completed=progress.completed,
+                        total=progress.total,
+                    )
+                time.sleep(PROGRESS_POLL_INTERVAL)
             languages, total_files = future.result()
 
-        yield render_html(languages, owner=owner, repo=repo, total_files=total_files)
+        yield render_html(
+            languages, owner=owner, repo=repo, completed=total_files, total=total_files
+        )
     except ValueError as e:
         yield _error_html(str(e))
     except requests.ConnectionError:
