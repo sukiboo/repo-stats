@@ -184,7 +184,6 @@ GITHUB_TOKEN: str = os.environ.get("GITHUB_TOKEN", "")
 CACHE: dict[str, CacheEntry] = {}
 CACHE_TTL: int = 300
 MAX_WORKERS: int = 20
-PROGRESS_POLL_INTERVAL: float = 0.05
 PROGRESS_THROTTLE: float = 0.25
 
 FONT_FAMILY: str = "monospace"

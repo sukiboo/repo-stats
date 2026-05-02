@@ -16,10 +16,10 @@ from src.constants import (
     FONT_FAMILY,
     FONT_SIZE,
     GITHUB_URL,
-    PROGRESS_POLL_INTERVAL,
+    PROGRESS_THROTTLE,
 )
 from src.github import parse_repo_url
-from src.models import ProgressInfo
+from src.models import ProgressState
 from src.rendering import _error_html, render_html
 
 
@@ -29,29 +29,27 @@ def analyze_repo(url: str) -> Generator[str, None, None]:
         return
     try:
         owner, repo = parse_repo_url(url)
-
-        def _on_progress(progress: ProgressInfo) -> None:
-            _on_progress.pending = progress  # type: ignore[attr-defined]
-
-        _on_progress.pending = None  # type: ignore[attr-defined]
+        state = ProgressState()
 
         def _run() -> tuple[dict[str, int], int]:
-            return count_lines_by_language(owner, repo, on_progress=_on_progress)
+            return count_lines_by_language(owner, repo, state=state)
 
         with ThreadPoolExecutor(max_workers=1) as executor:
             future = executor.submit(_run)
             while not future.done():
-                progress = _on_progress.pending  # type: ignore[attr-defined]
-                if progress is not None:
-                    _on_progress.pending = None  # type: ignore[attr-defined]
+                time.sleep(PROGRESS_THROTTLE)
+                with state.lock:
+                    snap_langs = dict(state.languages)
+                    snap_completed = state.completed
+                    snap_total = state.total
+                if snap_total > 0:
                     yield render_html(
-                        progress.languages,
+                        snap_langs,
                         owner=owner,
                         repo=repo,
-                        completed=progress.completed,
-                        total=progress.total,
+                        completed=snap_completed,
+                        total=snap_total,
                     )
-                time.sleep(PROGRESS_POLL_INTERVAL)
             languages, total_files = future.result()
 
         yield render_html(
