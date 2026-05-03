@@ -220,6 +220,6 @@ C_ACCENT: str = "#eeaa66"
 C_ERROR: str = "#ff4488"
 
 PROGRESS_WIDTH: int = 50
-BAR_WIDTH: int = 40
+LANGUAGE_BAR_WIDTH: int = 50
 MIN_LANGUAGE_SHARE: float = 0.005
 HISTOGRAM_HEIGHT: int = 5

@@ -2,7 +2,6 @@ import datetime as dt
 from html import escape
 
 from src.constants import (
-    BAR_WIDTH,
     C_ACCENT,
     C_BAR,
     C_ERROR,
@@ -13,6 +12,7 @@ from src.constants import (
     FONT_FAMILY,
     FONT_SIZE,
     HISTOGRAM_HEIGHT,
+    LANGUAGE_BAR_WIDTH,
     MIN_LANGUAGE_SHARE,
     PROGRESS_WIDTH,
 )
@@ -109,63 +109,73 @@ def render_html(
     branches: int | None = None,
     histogram: list[tuple[int, int]] | None = None,
 ) -> str:
-    lines: list[str] = []
+    sep = _c("//", C_MUTED)
+    g1, g2, g3 = "    ", "  ", "    "
+
+    total_loc = sum(languages.values())
+    has_langs = bool(languages) and total_loc > 0
+
+    if has_langs:
+        main = {k: v for k, v in languages.items() if v / total_loc >= MIN_LANGUAGE_SHARE}
+        other = total_loc - sum(main.values())
+        if other > 0:
+            main["Other"] = other
+        sorted_langs = sorted(main.items(), key=lambda x: (x[0] == "Other", -x[1]))
+        lw = max(len(k) for k in main)
+        nw = max(len(f"{v:,}") for v in main.values())
+    else:
+        lw, nw = 10, 7
+
+    row_width = lw + len(g1) + LANGUAGE_BAR_WIDTH + len(g2) + 7 + len(g3) + nw
+
+    lines: list[str] = ["", ""]
+
+    stats_title = "stats "
+    lines.append(" " + _c(stats_title + "─" * max(0, row_width - len(stats_title)), C_MUTED))
+
+    if owner and repo:
+        repo_url = f"https://github.com/{escape(owner)}/{escape(repo)}"
+        repo_link = (
+            f'<a href="{repo_url}" target="_blank" '
+            f'style="color:{C_LINK};text-decoration:none">{repo_url}</a>'
+        )
+        lines.append(f" URL:{repo_link}")
 
     if total:
         done = completed >= total
         pct = 1.0 if done else completed / total
         filled = PROGRESS_WIDTH if done else round(pct * PROGRESS_WIDTH)
         pbar = _c("#" * filled, C_BAR) + _c("." * (PROGRESS_WIDTH - filled), C_MUTED)
-        counter = _c(f"{total} files" if done else f"{completed}/{total} files", C_TEXT)
         pct_str = _c("100%" if done else f"{pct:.0%}", C_ACCENT)
-        lines.append(f" {pct_str} [{pbar}] {_c('//', C_MUTED)} {counter}")
+        lines.append(f" [{pbar}] {pct_str}")
 
-    total_loc = sum(languages.values())
-    if not languages or total_loc == 0:
-        if lines:
+    if not has_langs:
+        if owner or total:
             return _pre("\n".join(lines))
         return _error_html("No code files found in this repository.")
-
-    main = {k: v for k, v in languages.items() if v / total_loc >= MIN_LANGUAGE_SHARE}
-    other = total_loc - sum(main.values())
-    if other > 0:
-        main["Other"] = other
-    sorted_langs = sorted(
-        main.items(),
-        key=lambda x: (x[0] == "Other", -x[1]),
-    )
-
-    lw = max(len(k) for k in main)
-    nw = max(len(f"{v:,}") for v in main.values())
-    g1, g2, g3 = "    ", "  ", "    "
-
-    repo_url = f"https://github.com/{escape(owner)}/{escape(repo)}"
-    repo_link = f'<a href="{repo_url}" target="_blank" style="color:{C_LINK};text-decoration:none">{repo_url}</a>'
-    sep = _c("//", C_MUTED)
 
     stats_parts: list[str] = [""]
     if branches is not None:
         stats_parts.append(_c(f"{branches:,} branches", C_TEXT))
     if commits is not None:
         stats_parts.append(_c(f"{commits:,} commits", C_TEXT))
+    if total:
+        stats_parts.append(_c(f"{total:,} files", C_TEXT))
     stats_parts.append(_c(f"{total_loc:,} lines of code", C_TEXT))
 
     lines += [
-        "\n",
-        f" {repo_link}",
-        " " + f" {sep} ".join(stats_parts),
+        f" {sep} ".join(stats_parts),
         "",
     ]
 
-    row_width = lw + len(g1) + BAR_WIDTH + len(g2) + 7 + len(g3) + nw
     dashes = max(0, row_width - len("language") - len("lines") - 2)
     hdr = _c(f"language {'─' * dashes} lines", C_MUTED)
     lines.append(" " + hdr)
 
     for lang, loc in sorted_langs:
         pct = loc / total_loc
-        filled = round(pct * BAR_WIDTH)
-        bar = _c("#" * filled, C_BAR) + _c("." * (BAR_WIDTH - filled), C_MUTED)
+        filled = round(pct * LANGUAGE_BAR_WIDTH)
+        bar = _c("#" * filled, C_BAR) + _c("." * (LANGUAGE_BAR_WIDTH - filled), C_MUTED)
 
         lang_col = _pad(_c(escape(lang), C_LABEL), len(lang), lw)
         pct_str = _c(f"{pct:>7.2%}", C_ACCENT)
