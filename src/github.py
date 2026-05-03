@@ -1,5 +1,6 @@
 import json
 import re
+import time
 
 import requests
 
@@ -61,6 +62,52 @@ def get_file_tree(owner: str, repo: str, branch: str) -> list[tuple[str, int]]:
             continue
         entries.append((path, item.get("size", 0)))
     return entries
+
+
+def _last_page_count(resp: requests.Response, fallback: int) -> int:
+    link = resp.headers.get("Link", "")
+    m = re.search(r'<[^>]*[?&]page=(\d+)[^>]*>;\s*rel="last"', link)
+    if m:
+        return int(m.group(1))
+    return fallback
+
+
+def get_repo_meta(owner: str, repo: str, branch: str) -> tuple[int, int]:
+    resp = requests.get(
+        f"https://api.github.com/repos/{owner}/{repo}/commits",
+        params={"per_page": "1", "sha": branch},
+        headers=_api_headers(),
+        timeout=15,
+    )
+    resp.raise_for_status()
+    commits_count = _last_page_count(resp, len(resp.json()))
+
+    resp = requests.get(
+        f"https://api.github.com/repos/{owner}/{repo}/branches",
+        params={"per_page": "1"},
+        headers=_api_headers(),
+        timeout=15,
+    )
+    resp.raise_for_status()
+    branches_count = _last_page_count(resp, len(resp.json()))
+
+    return commits_count, branches_count
+
+
+def get_commit_histogram(owner: str, repo: str) -> list[tuple[int, int]]:
+    url = f"https://api.github.com/repos/{owner}/{repo}/stats/participation"
+    resp = requests.get(url, headers=_api_headers(), timeout=15)
+    if resp.status_code != 200:
+        return []
+    weeks = resp.json().get("all", [])
+    if not weeks:
+        return []
+    seconds_per_week = 7 * 24 * 3600
+    latest_week_start = (int(time.time()) // seconds_per_week) * seconds_per_week
+    return [
+        (latest_week_start - (len(weeks) - 1 - i) * seconds_per_week, c)
+        for i, c in enumerate(weeks)
+    ]
 
 
 def fetch_file_lines(owner: str, repo: str, branch: str, path: str) -> int:

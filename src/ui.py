@@ -19,7 +19,7 @@ from src.constants import (
     PROGRESS_RENDER_INTERVAL,
 )
 from src.github import parse_repo_url
-from src.models import ProgressState
+from src.models import ProgressState, RepoStats
 from src.rendering import _error_html, render_html
 
 
@@ -31,7 +31,7 @@ def analyze_repo(url: str) -> Generator[str, None, None]:
         owner, repo = parse_repo_url(url)
         state = ProgressState()
 
-        def _run() -> tuple[dict[str, int], int]:
+        def _run() -> RepoStats:
             return count_lines_by_language(owner, repo, state=state)
 
         with ThreadPoolExecutor(max_workers=1) as executor:
@@ -42,6 +42,9 @@ def analyze_repo(url: str) -> Generator[str, None, None]:
                     snap_langs = dict(state.languages)
                     snap_completed = state.completed
                     snap_total = state.total
+                    snap_commits = state.commits
+                    snap_branches = state.branches
+                    snap_histogram = state.histogram
                 if snap_total > 0:
                     yield render_html(
                         snap_langs,
@@ -49,11 +52,21 @@ def analyze_repo(url: str) -> Generator[str, None, None]:
                         repo=repo,
                         completed=snap_completed,
                         total=snap_total,
+                        commits=snap_commits,
+                        branches=snap_branches,
+                        histogram=snap_histogram,
                     )
-            languages, total_files = future.result()
+            stats = future.result()
 
         yield render_html(
-            languages, owner=owner, repo=repo, completed=total_files, total=total_files
+            stats.languages,
+            owner=owner,
+            repo=repo,
+            completed=stats.files,
+            total=stats.files,
+            commits=stats.commits,
+            branches=stats.branches,
+            histogram=stats.histogram,
         )
     except ValueError as e:
         yield _error_html(str(e))

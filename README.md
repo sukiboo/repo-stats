@@ -24,7 +24,7 @@ This app fixes that by counting actual lines.
 
 1. Fetches the full file tree via the GitHub API
 2. Filters out binary files, vendored directories (`node_modules`, `vendor`, `dist`, etc.), and non-code files
-3. Downloads each source file from `raw.githubusercontent.com` concurrently
+3. Downloads each source file from `raw.githubusercontent.com` concurrently, largest files first so the live breakdown stabilizes early instead of jumping when a big file lands late
 4. Counts newlines in each file, mapping file extensions to languages
 
 
