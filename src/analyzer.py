@@ -19,8 +19,10 @@ def count_lines_by_language(
         return entry.data, entry.files
 
     branch = get_default_branch(owner, repo)
-    all_paths = get_file_tree(owner, repo, branch)
-    paths = [p for p in all_paths if _should_count(p)]
+    all_entries = get_file_tree(owner, repo, branch)
+    entries = [(p, s) for p, s in all_entries if _should_count(p)]
+    entries.sort(key=lambda e: e[1], reverse=True)
+    paths = [p for p, _ in entries]
 
     if not paths:
         raise ValueError("No code files found in this repository.")

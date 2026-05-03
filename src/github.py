@@ -41,7 +41,7 @@ def get_default_branch(owner: str, repo: str) -> str:
     return resp.json()["default_branch"]
 
 
-def get_file_tree(owner: str, repo: str, branch: str) -> list[str]:
+def get_file_tree(owner: str, repo: str, branch: str) -> list[tuple[str, int]]:
     resp = requests.get(
         f"https://api.github.com/repos/{owner}/{repo}/git/trees/{branch}?recursive=1",
         headers=_api_headers(),
@@ -51,7 +51,7 @@ def get_file_tree(owner: str, repo: str, branch: str) -> list[str]:
         raise ValueError("Rate limit exceeded. Try again later or set a GITHUB_TOKEN.")
     resp.raise_for_status()
     data = resp.json()
-    paths: list[str] = []
+    entries: list[tuple[str, int]] = []
     for item in data.get("tree", []):
         if item["type"] != "blob":
             continue
@@ -59,8 +59,8 @@ def get_file_tree(owner: str, repo: str, branch: str) -> list[str]:
         parts = path.split("/")
         if any(p in SKIP_DIRS for p in parts):
             continue
-        paths.append(path)
-    return paths
+        entries.append((path, item.get("size", 0)))
+    return entries
 
 
 def fetch_file_lines(owner: str, repo: str, branch: str, path: str) -> int:

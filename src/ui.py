@@ -16,7 +16,7 @@ from src.constants import (
     FONT_FAMILY,
     FONT_SIZE,
     GITHUB_URL,
-    PROGRESS_THROTTLE,
+    PROGRESS_RENDER_INTERVAL,
 )
 from src.github import parse_repo_url
 from src.models import ProgressState
@@ -37,7 +37,7 @@ def analyze_repo(url: str) -> Generator[str, None, None]:
         with ThreadPoolExecutor(max_workers=1) as executor:
             future = executor.submit(_run)
             while not future.done():
-                time.sleep(PROGRESS_THROTTLE)
+                time.sleep(PROGRESS_RENDER_INTERVAL)
                 with state.lock:
                     snap_langs = dict(state.languages)
                     snap_completed = state.completed
