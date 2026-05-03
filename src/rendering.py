@@ -74,20 +74,27 @@ def _render_histogram_block(histogram: list[tuple[int, int]], width: int) -> str
     heights = [round(b / max_count * total_eighths) for b in buckets]
 
     first_iso = _ts_to_iso(trimmed[0][0])
+    mid_iso = _ts_to_iso((trimmed[0][0] + trimmed[-1][0]) // 2)
     last_iso = _ts_to_iso(trimmed[-1][0])
 
+    title = "commit history "
+    top_dashes = max(0, width - len(title))
     lines: list[str] = [
-        " " + _c("commit history", C_MUTED),
         "",
-        " " + _c("─" * width, C_MUTED),
+        "",
+        " " + _c(title + "─" * top_dashes, C_MUTED),
     ]
     for row in range(HISTOGRAM_HEIGHT - 1, -1, -1):
         chars = "".join(_BLOCKS[max(0, min(8, h - row * 8))] for h in heights)
         lines.append(" " + _c(chars, C_BAR))
-    lines.append(" " + _c("─" * width, C_MUTED))
 
-    gap = max(1, width - len(first_iso) - len(last_iso))
-    lines.append(" " + _c(first_iso + " " * gap + last_iso, C_MUTED))
+    total_gap = max(2, width - len(first_iso) - len(mid_iso) - len(last_iso))
+    left_gap = total_gap // 2
+    right_gap = total_gap - left_gap
+    lines.append("")
+    lines.append(
+        " " + _c(f"{first_iso}{' ' * left_gap}{mid_iso}{' ' * right_gap}{last_iso}", C_MUTED)
+    )
 
     return _pre("\n".join(lines), tight=True)
 
@@ -151,16 +158,9 @@ def render_html(
     ]
 
     row_width = lw + len(g1) + BAR_WIDTH + len(g2) + 7 + len(g3) + nw
-    hdr = (
-        _pad(_c("language", C_MUTED), 8, lw)
-        + g1
-        + " " * BAR_WIDTH
-        + g2
-        + " " * 7
-        + g3
-        + _c(f"{'lines':>{nw}s}", C_MUTED)
-    )
-    lines += [" " + hdr, " " + _c("─" * row_width, C_MUTED)]
+    dashes = max(0, row_width - len("language") - len("lines") - 2)
+    hdr = _c(f"language {'─' * dashes} lines", C_MUTED)
+    lines.append(" " + hdr)
 
     for lang, loc in sorted_langs:
         pct = loc / total_loc
