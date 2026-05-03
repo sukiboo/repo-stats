@@ -10,9 +10,12 @@ pinned: false
 short_description: Visualize lines of code by language for a GitHub repo
 ---
 
-# repo-stats
+# repo-stats 🩻
 
-A simple app to visualize lines of code by language and other basic stats for any public GitHub repo.
+A simple app ([deployed on HF spaces](https://huggingface.co/spaces/sukiboo/repo-stats)) to visualize lines of code by language and other basic stats for any public GitHub repo.
+
+
+## Why Make It
 
 I was kinda annoyed that it doesn't exist already, or at least not in the way I imagined.
 
@@ -26,6 +29,7 @@ This app fixes that by counting actual lines.
 2. Filters out binary files, vendored directories (`node_modules`, `vendor`, `dist`, etc.), and non-code files
 3. Downloads each source file from `raw.githubusercontent.com` concurrently, largest files first so the live breakdown stabilizes early instead of jumping when a big file lands late
 4. Counts newlines in each file, mapping file extensions to languages
+5. Pulls weekly commit counts over the repo's full lifetime via `/stats/contributors` and renders them as a block-character histogram below the language chart
 
 
 ## Running Locally
@@ -35,7 +39,7 @@ pip install -r requirements.txt
 python app.py
 ```
 
-Optionally set a `GITHUB_TOKEN` environment variable to avoid GitHub API rate limits:
+Optionally set a `GITHUB_TOKEN` environment variable to avoid GitHub API rate limits and to reliably fetch the commit history:
 
 ```bash
 export GITHUB_TOKEN=ghp_...
