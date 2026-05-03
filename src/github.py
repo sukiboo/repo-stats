@@ -4,7 +4,12 @@ import time
 
 import requests
 
-from src.constants import GITHUB_TOKEN, SKIP_DIRS
+from src.constants import (
+    GITHUB_TOKEN,
+    SKIP_DIRS,
+    STATS_RETRY_ATTEMPTS,
+    STATS_RETRY_DELAY,
+)
 from src.utils import _get_ext
 
 
@@ -95,19 +100,26 @@ def get_repo_meta(owner: str, repo: str, branch: str) -> tuple[int, int]:
 
 
 def get_commit_histogram(owner: str, repo: str) -> list[tuple[int, int]]:
-    url = f"https://api.github.com/repos/{owner}/{repo}/stats/participation"
-    resp = requests.get(url, headers=_api_headers(), timeout=15)
-    if resp.status_code != 200:
-        return []
-    weeks = resp.json().get("all", [])
-    if not weeks:
-        return []
-    seconds_per_week = 7 * 24 * 3600
-    latest_week_start = (int(time.time()) // seconds_per_week) * seconds_per_week
-    return [
-        (latest_week_start - (len(weeks) - 1 - i) * seconds_per_week, c)
-        for i, c in enumerate(weeks)
-    ]
+    url = f"https://api.github.com/repos/{owner}/{repo}/stats/contributors"
+    for _ in range(STATS_RETRY_ATTEMPTS):
+        resp = requests.get(url, headers=_api_headers(), timeout=15)
+        if resp.status_code == 202:
+            time.sleep(STATS_RETRY_DELAY)
+            continue
+        if resp.status_code != 200:
+            return []
+        data = resp.json()
+        if not data:
+            return []
+        weekly: dict[int, int] = {}
+        for contributor in data:
+            for week in contributor.get("weeks", []):
+                w = week.get("w")
+                if w is None:
+                    continue
+                weekly[w] = weekly.get(w, 0) + week.get("c", 0)
+        return sorted(weekly.items())
+    return []
 
 
 def fetch_file_lines(owner: str, repo: str, branch: str, path: str) -> int:

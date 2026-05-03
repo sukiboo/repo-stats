@@ -115,6 +115,7 @@ def render_html(
     total_loc = sum(languages.values())
     has_langs = bool(languages) and total_loc > 0
 
+    sorted_langs: list[tuple[str, int]] = []
     if has_langs:
         main = {k: v for k, v in languages.items() if v / total_loc >= MIN_LANGUAGE_SHARE}
         other = total_loc - sum(main.values())

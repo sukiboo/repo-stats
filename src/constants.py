@@ -185,6 +185,8 @@ CACHE: dict[str, CacheEntry] = {}
 CACHE_TTL: int = 300
 MAX_WORKERS: int = 20
 PROGRESS_RENDER_INTERVAL: float = 0.1
+STATS_RETRY_ATTEMPTS: int = 3
+STATS_RETRY_DELAY: float = 1.5
 
 FONT_FAMILY: str = "monospace"
 FONT_SIZE: str = "14px"
